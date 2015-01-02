@@ -4,6 +4,7 @@
 
 package com.aweber.flume.source.rabbitmq;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.LinkedList;
@@ -55,6 +56,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     private static final String PREFETCH_COUNT_KEY = "prefetch-count";
     private static final String PREFETCH_SIZE_KEY = "prefetch-size";
     private static final String THREAD_COUNT_KEY = "threads";
+    private static final String SSLv3 = "SSLv3";
 
     private String hostname;
     private int port;
@@ -95,16 +97,15 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
         consumerThreads = context.getInteger(THREAD_COUNT_KEY, 1);
 
         // Get any specified protocols to exclude
-        String excludeProtocolsStr = context.getString(EXCLUDE_PROTOCOLS);
+        excludeProtocols.clear();
+        String tmp = context.getString(EXCLUDE_PROTOCOLS, "");
+        if (!tmp.isEmpty()) {
+            excludeProtocols.addAll(Arrays.asList(tmp.split(" ")));
+        }
 
-        // Add SSLv3
-        if (excludeProtocolsStr == null) {
-            excludeProtocols.add("SSLv3");
-        } else {
-            excludeProtocols.addAll(Arrays.asList(excludeProtocolsStr.split(" ")));
-            if (!excludeProtocols.contains("SSLv3")) {
-                excludeProtocols.add("SSLv3");
-            }
+        // Add SSLv3 if missing
+        if (!excludeProtocols.contains(SSLv3)) {
+            excludeProtocols.add(SSLv3);
         }
     }
 
