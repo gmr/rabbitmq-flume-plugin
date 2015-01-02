@@ -34,8 +34,7 @@ service cron stop
 service atd stop
 
 # Copy the flume test configs over
-cp /vagrant/conf/flume.conf /etc/flume/conf/
-cp /vagrant/conf/flume-env.sh /etc/flume/conf/
+ cp /vagrant/conf/flume* /etc/flume-ng/conf/
 SCRIPT
 
 Vagrant.configure('2') do |config|
