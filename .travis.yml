@@ -1,0 +1,14 @@
+language: java
+jdk:
+  - oraclejdk8
+  - oraclejdk7
+  - openjdk6
+deploy:
+  provider: releases
+  api-key: "GITHUB OAUTH TOKEN"
+  file: target/trrabbitmq-flume-plugin-$TRAVIS_TAG.jar
+  skip_cleanup: true
+  on:
+    jdk: oraclejdk7
+    tags: true
+    all_branches: true

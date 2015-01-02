@@ -51,6 +51,10 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     private static final String PASSWORD_KEY = "password";
     private static final String QUEUE_KEY = "queue";
     private static final String EXCLUDE_PROTOCOLS = "exclude-protocols";
+    private static final String NOACK_KEY = "queue";
+    private static final String PREFETCH_COUNT_KEY = "prefetch-count";
+    private static final String PREFETCH_SIZE_KEY = "prefetch-size";
+    private static final String THREAD_COUNT_KEY = "threads";
 
     private String hostname;
     private int port;
@@ -59,6 +63,10 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     private String username;
     private String password;
     private String queue;
+    private boolean noAck = false;
+    private int prefetchCount = 0;
+    private int prefetchSize = 0;
+    private int consumerThreads = 1;
 
     private final List<String> excludeProtocols = new LinkedList<String>();
 
@@ -69,16 +77,22 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
 
     @Override
     public void configure(Context context) {
-        Configurables.ensureRequiredNonNull(context,
-                HOST_KEY, PORT_KEY, VHOST_KEY, USER_KEY, PASSWORD_KEY);
 
-        hostname = context.getString(HOST_KEY);
-        port = context.getInteger(PORT_KEY);
+        // Only the queue name does not have a default value
+        Configurables.ensureRequiredNonNull(context, QUEUE_KEY);
+
+        // Assign all of the configured values
+        hostname = context.getString(HOST_KEY, "localhost");
+        port = context.getInteger(PORT_KEY, 5672);
         enableSSL = context.getBoolean(SSL_KEY, false);
-        virtualHost = context.getString(VHOST_KEY);
-        username = context.getString(USER_KEY);
-        password = context.getString(PASSWORD_KEY);
+        virtualHost = context.getString(VHOST_KEY, "/");
+        username = context.getString(USER_KEY, "guest");
+        password = context.getString(PASSWORD_KEY, "guest");
         queue = context.getString(QUEUE_KEY, null);
+        noAck = context.getBoolean(NOACK_KEY, false);
+        prefetchCount = context.getInteger(PREFETCH_COUNT_KEY, 0);
+        prefetchSize = context.getInteger(PREFETCH_SIZE_KEY, 0);
+        consumerThreads = context.getInteger(THREAD_COUNT_KEY, 1);
 
         // Get any specified protocols to exclude
         String excludeProtocolsStr = context.getString(EXCLUDE_PROTOCOLS);
