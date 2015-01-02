@@ -33,6 +33,9 @@ service puppet stop
 service cron stop
 service atd stop
 
+# Copy the flume test configs over
+cp /vagrant/conf/flume.conf /etc/flume/conf/
+cp /vagrant/conf/flume-env.sh /etc/flume/conf/
 SCRIPT
 
 Vagrant.configure('2') do |config|
@@ -45,7 +48,7 @@ Vagrant.configure('2') do |config|
   config.vm.provision "shell", inline: $script
 
   config.vm.provider "virtualbox" do |v|
-    v.memory = 1024
+    v.memory = 4098
     v.cpus = 2
   end
 
