@@ -101,7 +101,7 @@ Build Instructions
 ------------------
 To build from source, use ``maven``:
 
-.. code:: bash
+.. code::bash
 
     mvn package
 
