@@ -87,13 +87,12 @@ Variable           | Default       | Description
 host               | ``localhost`` | The RabbitMQ host to connect to
 port               | ``5672``      | The port to connect on
 ssl                | ``false``     | Connect to RabbitMQ via SSL
-exclude-protocols  | ``SSLv3``     | A space separated list of SSL protocols to exclude/ignore
 virtual-host       | ``/``         | The virtual host name to connect to
 username           | ``guest``     | The username to connect as
 password           | ``guest``     | The password to use when connecting
 exchange           | ``amq.topic`` | The exchange to publish the message to
-routing_key        |               | The routing key to use when publishing
-auto_properties    | ``false``     | Automatically populate AMQP message properties (timestamp, message_id, type?)
+routing-key        |               | The routing key to use when publishing
+auto-properties    | ``false``     | Automatically populate AMQP message properties (timestamp, message_id, type?)
 mandatory-publish  | ``false``     | Enable mandatory publishing
 publisher-confirms | ``false``     | Enable publisher confirmations
 transactional      | ``false``     | Enable transactional publishing (slowest publishing guarantee)
