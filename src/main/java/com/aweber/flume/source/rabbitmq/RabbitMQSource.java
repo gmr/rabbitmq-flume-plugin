@@ -11,6 +11,8 @@ import org.apache.flume.CounterGroup;
 import org.apache.flume.EventDrivenSource;
 import org.apache.flume.conf.Configurable;
 import org.apache.flume.conf.Configurables;
+import org.apache.flume.instrumentation.MonitoredCounterGroup;
+import org.apache.flume.instrumentation.SourceCounter;
 import org.apache.flume.source.AbstractSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -32,12 +34,13 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     private static final String USER_KEY = "username";
     private static final String PASSWORD_KEY = "password";
     private static final String QUEUE_KEY = "queue";
-    private static final String NOACK_KEY = "queue";
+    private static final String AUTOACK_KEY = "auto-ack";
     private static final String PREFETCH_COUNT_KEY = "prefetch-count";
     private static final String PREFETCH_SIZE_KEY = "prefetch-size";
     private static final String THREAD_COUNT_KEY = "threads";
-    private CounterGroup counterGroup;
+    private SourceCounter sourceCounter;
     private ConnectionFactory factory;
+    private CounterGroup counterGroup;
     private String hostname;
     private int port;
     private boolean enableSSL = false;
@@ -45,25 +48,29 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     private String username;
     private String password;
     private String queue;
-    private boolean noAck = false;
+    private boolean autoAck = false;
     private int prefetchCount = 0;
     private int prefetchSize = 0;
     private int consumerThreads = 1;
 
+    private List<Consumer> consumers;
     private List<Thread> threads;
 
     public RabbitMQSource() {
+        sourceCounter = new SourceCounter(getName());
         counterGroup = new CounterGroup();
-        threads = new ArrayList<Thread>();
+        consumers = new LinkedList<Consumer>();
+        threads = new LinkedList<Thread>();
         factory = new ConnectionFactory();
     }
 
     public RabbitMQSource(ConnectionFactory factory) {
+        sourceCounter = new SourceCounter(getName());
         counterGroup = new CounterGroup();
-        threads = new ArrayList<Thread>();
+        consumers = new LinkedList<Consumer>();
+        threads = new LinkedList<Thread>();
         this.factory = factory;
     }
-
 
     @Override
     public void configure(Context context) {
@@ -78,7 +85,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
         username = context.getString(USER_KEY, ConnectionFactory.DEFAULT_USER);
         password = context.getString(PASSWORD_KEY, ConnectionFactory.DEFAULT_PASS);
         queue = context.getString(QUEUE_KEY, null);
-        noAck = context.getBoolean(NOACK_KEY, false);
+        autoAck = context.getBoolean(AUTOACK_KEY, false);
         prefetchCount = context.getInteger(PREFETCH_COUNT_KEY, 0);
         prefetchSize = context.getInteger(PREFETCH_SIZE_KEY, 0);
         consumerThreads = context.getInteger(THREAD_COUNT_KEY, 1);
@@ -89,9 +96,10 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
 
     @Override
     public synchronized void start() {
-        logger.info("Starting {}...", this);
+        logger.info("Starting {} with {} thread(s)", this, consumerThreads);
+        sourceCounter.start();
         for (int i = 0; i < consumerThreads; i++) {
-            Runnable consumer = new Consumer()
+            Consumer consumer = new Consumer()
                     .setHostname(hostname)
                     .setPort(port)
                     .setSSLEnabled(enableSSL)
@@ -101,9 +109,16 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
                     .setQueue(queue)
                     .setPrefetchCount(prefetchCount)
                     .setPrefetchSize(prefetchSize)
-                    .setNoAck(noAck);
+                    .setAutoAck(autoAck)
+                    .setChannelProcessor(getChannelProcessor())
+                    .setSourceCounter(sourceCounter)
+                    .setCounterGroup(counterGroup);
+            Thread thread = new Thread(consumer);
+            thread.setName("RabbitMQ Consumer #" + String.valueOf(i));
+            thread.start();
+            consumers.add(consumer);
+            threads.add(thread);
         }
-
         super.start();
     }
 
@@ -111,7 +126,11 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     public synchronized void stop() {
         logger.info("Stopping {}...", this);
         for (int i = 0; i < consumerThreads; i++) {
+        logger.debug("Stopping consumer #{}", i);
+            Consumer consumer = consumers.get(i);
+            consumer.shutdown();
         }
+        sourceCounter.stop();
         super.stop();
     }
 

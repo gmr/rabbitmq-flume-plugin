@@ -1,39 +1,22 @@
 package com.aweber.flume;
 
-import java.io.IOException;
-import java.lang.IllegalArgumentException;
-import java.lang.reflect.Field;
-import java.util.LinkedList;
-import java.util.List;
-
+import com.aweber.flume.source.rabbitmq.RabbitMQSource;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-
-import org.apache.flume.Channel;
-import org.apache.flume.ChannelSelector;
 import org.apache.flume.Context;
-import org.apache.flume.Event;
-import org.apache.flume.FlumeException;
-import org.apache.flume.Transaction;
-
-import org.apache.flume.channel.ChannelProcessor;
-import org.apache.flume.channel.MemoryChannel;
-import org.apache.flume.channel.ReplicatingChannelSelector;
-
 import org.apache.flume.conf.Configurables;
-
-import static org.easymock.EasyMock.*;
-import org.easymock.*;
-
-import static org.junit.Assert.*;
-import org.junit.Test;
+import org.easymock.EasyMockRunner;
 import org.junit.Before;
-
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.aweber.flume.source.rabbitmq.RabbitMQSource;
+import java.io.IOException;
+import java.lang.reflect.Field;
+
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(EasyMockRunner.class)
 public class TestRabbitMQSource {
@@ -103,8 +86,8 @@ public class TestRabbitMQSource {
     }
 
     @Test
-    public void testNoAckDefaultValue() throws NoSuchFieldException, IllegalAccessException {
-        assertEquals(false, getAccessibleField("noAck").get(source));
+    public void testAutoAckDefaultValue() throws NoSuchFieldException, IllegalAccessException {
+        assertEquals(false, getAccessibleField("autoAck").get(source));
     }
 
     @Test(expected = IllegalArgumentException.class)
