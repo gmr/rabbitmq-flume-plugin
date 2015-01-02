@@ -1,13 +1,13 @@
 package com.aweber.flume;
 
+import java.io.IOException;
 import java.lang.IllegalArgumentException;
 import java.lang.reflect.Field;
-import java.lang.reflect.Member;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.LinkedList;
+
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 
 import org.apache.flume.Channel;
 import org.apache.flume.ChannelSelector;
@@ -22,16 +22,20 @@ import org.apache.flume.channel.ReplicatingChannelSelector;
 
 import org.apache.flume.conf.Configurables;
 
+import static org.easymock.EasyMock.*;
+import org.easymock.*;
+
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.Before;
 
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.aweber.flume.source.rabbitmq.RabbitMQSource;
 
-
+@RunWith(EasyMockRunner.class)
 public class TestRabbitMQSource {
 
     private static final Logger logger = LoggerFactory
@@ -39,35 +43,23 @@ public class TestRabbitMQSource {
 
     private String queueName = "test-queue";
     private RabbitMQSource source;
-    private Channel channel;
-    private InetAddress localhost;
-
-    @Before
-    public void setUp() throws UnknownHostException {
-
-        localhost = InetAddress.getByName("127.0.0.1");
-        source = new RabbitMQSource();
-        channel = new MemoryChannel();
-
-        Configurables.configure(channel, new Context());
-
-        List<Channel> channels = new LinkedList<Channel>();
-        channels.add(channel);
-
-        ChannelSelector rcs = new ReplicatingChannelSelector();
-        rcs.setChannels(channels);
-
-        source.setChannelProcessor(new ChannelProcessor(rcs));
-
-        Context context = new Context();
-        context.put("queue", queueName);
-        Configurables.configure(source, context);
-    }
 
     private Field getAccessibleField(String name) throws NoSuchFieldException {
         Field field = RabbitMQSource.class.getDeclaredField(name);
         field.setAccessible(true);
         return field;
+    }
+
+    @Before
+    public void setUp() throws IOException {
+        ConnectionFactory mock = createNiceMock(ConnectionFactory.class);
+        expect(mock.newConnection()).andReturn(createNiceMock(Connection.class));
+        replay(mock);
+        source = new RabbitMQSource(mock);
+
+        Context context = new Context();
+        context.put("queue", queueName);
+        Configurables.configure(source, context);
     }
 
     @Test
@@ -83,41 +75,6 @@ public class TestRabbitMQSource {
     @Test
     public void testSSLDefaultValue() throws NoSuchFieldException, IllegalAccessException {
         assertEquals(false, getAccessibleField("enableSSL").get(source));
-    }
-
-    @Test
-    public void testExcludeProtocolsDefaultValue() throws NoSuchFieldException, IllegalAccessException {
-        List<String> expectation = new LinkedList<String>();
-        expectation.add(0, "SSLv3");
-        assertEquals(expectation, getAccessibleField("excludeProtocols").get(source));
-    }
-
-    @Test
-    public void testExcludeProtocolsWithOneValue() throws NoSuchFieldException, IllegalAccessException {
-        List<String> expectation = new LinkedList<String>();
-        expectation.add(0, "TLSv1");
-        expectation.add(1, "SSLv3");
-
-        Context context = new Context();
-        context.put("queue", queueName);
-        context.put("exclude-protocols", "TLSv1");
-        Configurables.configure(source, context);
-
-        assertEquals(expectation, getAccessibleField("excludeProtocols").get(source));
-    }
-
-    @Test
-    public void testExcludeProtocolsWithMultipleValues() throws NoSuchFieldException, IllegalAccessException {
-        List<String> expectation = new LinkedList<String>();
-        expectation.add(0, "TLSv1");
-        expectation.add(1, "SSLv3");
-
-        Context context = new Context();
-        context.put("queue", queueName);
-        context.put("exclude-protocols", "TLSv1 SSLv3");
-        Configurables.configure(source, context);
-
-        assertEquals(expectation, getAccessibleField("excludeProtocols").get(source));
     }
 
     @Test
@@ -160,6 +117,5 @@ public class TestRabbitMQSource {
     public void testQueuePassedValue() throws NoSuchFieldException, IllegalAccessException {
         assertEquals(queueName, getAccessibleField("queue").get(source));
     }
-
 }
 
