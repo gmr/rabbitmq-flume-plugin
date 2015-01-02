@@ -35,7 +35,7 @@ Variable          | Default       | Description
 host              | ``localhost`` | The RabbitMQ host to connect to
 port              | ``5672``      | The port to connect on
 ssl               | ``false``     | Connect to RabbitMQ via SSL
-exclude-protocols | ``SSLv3``     | A comma separated list of SSL protocols to exclude/ignore
+exclude-protocols | ``SSLv3``     | A space separated list of SSL protocols to exclude/ignore
 virtual-host      | ``/``         | The virtual host name to connect to
 username          | ``guest``     | The username to connect as
 password          | ``guest``     | The password to use when connecting
@@ -69,6 +69,8 @@ Variable           | Default       | Description
 ------------------ | ------------- | -----------
 host               | ``localhost`` | The RabbitMQ host to connect to
 port               | ``5672``      | The port to connect on
+ssl                | ``false``     | Connect to RabbitMQ via SSL
+exclude-protocols  | ``SSLv3``     | A space separated list of SSL protocols to exclude/ignore
 virtual-host       | ``/``         | The virtual host name to connect to
 username           | ``guest``     | The username to connect as
 password           | ``guest``     | The password to use when connecting
@@ -78,8 +80,6 @@ auto_properties    | ``false``     | Automatically populate AMQP message propert
 mandatory-publish  | ``false``     | Enable mandatory publishing
 publisher-confirms | ``false``     | Enable publisher confirmations
 transactional      | ``false``     | Enable transactional publishing (slowest publishing guarantee)
-ssl                | ``false``     | Connect to RabbitMQ via SSL
-exclude-protocols  | ``SSLv3``     | A comma separated list of SSL protocols to exclude/ignore
 threads            | ``1``         | The number of consumer threads created.
 
 #### Example
