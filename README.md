@@ -7,12 +7,14 @@ event headers.
 
 Download
 --------
+No downloads available, this has yet to be released. The intention is to provide
+a **jar** file for download in the releases page on GitHub.
 
 Installation Instructions
 -------------------------
 To install the plugin, copy the *jar* file to the ``$FLUME_LIB`` directory. For
-example, the $FLUME_LIB directory for Cloudera installed Flume, the ``$FLUME_LIB``
-is ``/usr/lib/flume/lib``.
+example, the ``$FLUME_LIB`` directory for Cloudera (CDH4) installed Flume, the
+``$FLUME_LIB`` is ``/usr/lib/flume/lib``.
 
 Configuration
 -------------
@@ -63,4 +65,4 @@ To build from source, use ``maven``:
     mvn package
 
 This will download all of the dependencies required for building the plugin and
-provide a *`jar`* file in the ``target/`` directory.
+provide a **jar** file in the ``target/`` directory.
