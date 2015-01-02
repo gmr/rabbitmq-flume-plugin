@@ -20,27 +20,44 @@ To install the plugin, copy the *jar* file to the ``$FLUME_LIB`` directory. For
 example, the ``$FLUME_LIB`` directory for Cloudera (CDH4) installed Flume, the
 ``$FLUME_LIB`` is ``/usr/lib/flume/lib``.
 
-Configuration
--------------
-Each component has its own configuration directives, but the **Source** and **Sink**
-share common RabbitMQ connection parameters.
+Behavior
+--------
 
 ### Source
 The RabbitMQ Source component enables RabbitMQ to act as a source for Flume events.
 You must create and bind the queue you would like the source to consume from manually
 in RabbitMQ, prior to starting Flume.
 
+When the Source consumes a message, any message properties(*) that are set on the message
+will be added to the Flume ``Event`` headers, including the exchange and routing key
+for the message. (*) This excludes the headers property which is a free-form key/value table.
+This is currently excluded due to the complexity of correctly parsing and dealing with the
+different data types that could be returned as values in the headers table.
+
+With Flume ``Event`` headers, you could use the ``type`` property or ``routing-key`` as
+part of the file path or name when using the HDFS sink.
+
+By default, there is a single consumer thread in the RabbitMQ source.
+
+Configuration
+-------------
+Each component has its own configuration directives, but the **Source** and **Sink**
+share common RabbitMQ connection parameters.
+
+### Source
+
+The Source component has the following configuration options:
+
 Variable          | Default       | Description
 ----------------- | ------------- | -----------
 host              | ``localhost`` | The RabbitMQ host to connect to
 port              | ``5672``      | The port to connect on
 ssl               | ``false``     | Connect to RabbitMQ via SSL
-exclude-protocols | ``SSLv3``     | A space separated list of SSL protocols to exclude/ignore
 virtual-host      | ``/``         | The virtual host name to connect to
 username          | ``guest``     | The username to connect as
 password          | ``guest``     | The password to use when connecting
 queue             |               | **Required** field specifying the name of the queue to consume from
-no_ack            | ``false``     | Toggle ``Basic.Consume`` no_ack mode
+auto-ack          | ``false``     | Enable auto-acknowledgement for higher throughput with the chance of message loss
 prefetch-count    | ``0``         | The ``Basic.QoS`` prefetch count to specify for consuming
 prefetch-size     | ``0``         | The ``Basic.QoS`` prefetch size to specify for consuming
 threads           | ``1``         | The number of consumer threads to create
