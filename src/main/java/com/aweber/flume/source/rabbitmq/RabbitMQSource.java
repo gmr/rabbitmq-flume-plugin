@@ -46,7 +46,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     private static final String HOST_KEY = "host";
     private static final String PORT_KEY = "port";
     private static final String SSL_KEY = "ssl";
-    private static final String VHOST_KEY = "virtual_host";
+    private static final String VHOST_KEY = "virtual-host";
     private static final String USER_KEY = "username";
     private static final String PASSWORD_KEY = "password";
     private static final String QUEUE_KEY = "queue";

@@ -34,7 +34,7 @@ host              | ``localhost`` | The RabbitMQ host to connect to
 port              | ``5672``      | The port to connect on
 ssl               | ``false``     | Connect to RabbitMQ via SSL
 exclude-protocols | ``SSLv3``     | A comma separated list of SSL protocols to exclude/ignore
-virtual_host      | ``/``         | The virtual host name to connect to
+virtual-host      | ``/``         | The virtual host name to connect to
 username          | ``guest``     | The username to connect as
 password          | ``guest``     | The password to use when connecting
 queue             |               | **Required** field specifying the name of the queue to consume from
@@ -67,17 +67,17 @@ Variable           | Default       | Description
 ------------------ | ------------- | -----------
 host               | ``localhost`` | The RabbitMQ host to connect to
 port               | ``5672``      | The port to connect on
-virtual_host       | ``/``         | The virtual host name to connect to
+virtual-host       | ``/``         | The virtual host name to connect to
 username           | ``guest``     | The username to connect as
 password           | ``guest``     | The password to use when connecting
 exchange           | ``amq.topic`` | The exchange to publish the message to
 routing_key        |               | The routing key to use when publishing
 auto_properties    | ``false``     | Automatically populate AMQP message properties (timestamp, message_id, type?)
-mandatory_publish  | ``false``     | Enable mandatory publishing
-publisher_confirms | ``false``     | Enable publisher confirmations
+mandatory-publish  | ``false``     | Enable mandatory publishing
+publisher-confirms | ``false``     | Enable publisher confirmations
 transactional      | ``false``     | Enable transactional publishing (slowest publishing guarantee)
 ssl                | ``false``     | Connect to RabbitMQ via SSL
-exclude_protocols  | ``SSLv3``     | A comma separated list of SSL protocols to exclude/ignore
+exclude-protocols  | ``SSLv3``     | A comma separated list of SSL protocols to exclude/ignore
 threads            | ``1``         | The number of consumer threads created.
 
 #### Example
