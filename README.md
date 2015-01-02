@@ -47,17 +47,17 @@ threads           | ``1``         | The number of consumer threads to create
 
 #### Example
 
-.. code::
-
-    a1.sources.r1.channels = c1
-    a1.sources.r1.type = com.aweber.flume.source.rabbitmq.RabbitMQSource
-    a1.sources.r1.hostname = localhost
-    a1.sources.r1.port = 5672
-    a1.sources.r1.virtual_host = /
-    a1.sources.r1.username = flume
-    a1.sources.r1.password = rabbitmq
-    a1.sources.r1.queue = events_for_s3
-    a1.sources.r1.prefetch_count = 10
+```
+a1.sources.r1.channels = c1
+a1.sources.r1.type = com.aweber.flume.source.rabbitmq.RabbitMQSource
+a1.sources.r1.hostname = localhost
+a1.sources.r1.port = 5672
+a1.sources.r1.virtual_host = /
+a1.sources.r1.username = flume
+a1.sources.r1.password = rabbitmq
+a1.sources.r1.queue = events_for_s3
+a1.sources.r1.prefetch_count = 10
+```
 
 ### Interceptors
 TBD
@@ -84,26 +84,26 @@ threads            | ``1``         | The number of consumer threads created.
 
 #### Example
 
-.. code::
-
-    a1.sinks.k1.channels = c1
-    a1.sinks.k1.type = com.aweber.flume.sink.rabbitmq.RabbitMQSink
-    a1.sinks.k1.hostname = localhost
-    a1.sinks.k1.port = 5672
-    a1.sinks.k1.virtual_host = /
-    a1.sinks.k1.username = flume
-    a1.sinks.k1.password = rabbitmq
-    a1.sinks.k1.exchange = amq.topic
-    a1.sinks.k1.routing_key = flume.event
-    a1.sinks.k1.publisher_confirms = true
+```
+a1.sinks.k1.channels = c1
+a1.sinks.k1.type = com.aweber.flume.sink.rabbitmq.RabbitMQSink
+a1.sinks.k1.hostname = localhost
+a1.sinks.k1.port = 5672
+a1.sinks.k1.virtual_host = /
+a1.sinks.k1.username = flume
+a1.sinks.k1.password = rabbitmq
+a1.sinks.k1.exchange = amq.topic
+a1.sinks.k1.routing_key = flume.event
+a1.sinks.k1.publisher_confirms = true
+```
 
 Build Instructions
 ------------------
 To build from source, use ``maven``:
 
-.. code::bash
-
-    mvn package
+```bash
+mvn package
+```
 
 This will download all of the dependencies required for building the plugin and
 provide a **jar** file in the ``target/`` directory.
