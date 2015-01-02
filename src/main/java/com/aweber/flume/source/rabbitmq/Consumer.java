@@ -270,7 +270,7 @@ public class Consumer implements Runnable {
         if (replyTo != null && !replyTo.isEmpty())
             headers.put("replyTo", replyTo);
         if (timestamp != null)
-            headers.put("timestamp", String.valueOf(timestamp.getTime() / 1000));
+            headers.put("timestamp", String.valueOf(timestamp.getTime()));
         if (type != null && !type.isEmpty()) headers.put("type", type);
         if (userId != null && !userId.isEmpty()) headers.put("user-id", userId);
 
