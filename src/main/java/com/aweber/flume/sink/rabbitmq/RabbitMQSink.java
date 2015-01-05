@@ -4,7 +4,12 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import org.apache.flume.*;
+import org.apache.flume.ChannelException;
+import org.apache.flume.Context;
+import org.apache.flume.CounterGroup;
+import org.apache.flume.Event;
+import org.apache.flume.EventDeliveryException;
+import org.apache.flume.Transaction;
 import org.apache.flume.conf.Configurable;
 import org.apache.flume.sink.AbstractSink;
 import org.slf4j.Logger;
@@ -44,6 +49,19 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
     private static final String TYPE_KEY = "type";
     private static final String USER_ID_KEY = "user-id";
 
+    private static final String DEFAULT_EXCHANGE = "amq.topic";
+    private static final String DEFAULT_ROUTING_KEY = "";
+
+    private static final String EVENT_EMPTY = "event.empty";
+    private static final String EVENT_RECEIVED = "event.empty";
+    private static final String EVENT_PUBLISHED = "event.empty";
+    private static final String EXCEPTION_CHANNEL = "exception.channel";
+    private static final String EXCEPTION_DELIVERY = "exception.delivery";
+    private static final String RABBITMQ_CLOSED = "rabbitmq.closed";
+    private static final String RABBITMQ_CONNECTED = "rabbitmq.connected";
+    private static final String RABBITMQ_EXCEPTION_SSL = "rabbitmq.exception.ssl";
+    private static final String RABBITMQ_EXCEPTION_CONNECTION = "rabbitmq.exception.connection";
+
     private String exchange;
     private String routingKey;
     private Boolean autoProperties;
@@ -78,8 +96,8 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
         virtualHost = context.getString(VHOST_KEY, ConnectionFactory.DEFAULT_VHOST);
         username = context.getString(USER_KEY, ConnectionFactory.DEFAULT_USER);
         password = context.getString(PASSWORD_KEY, ConnectionFactory.DEFAULT_PASS);
-        exchange = context.getString(EXCHANGE_KEY, "amq.topic");
-        routingKey = context.getString(ROUTING_KEY, "");
+        exchange = context.getString(EXCHANGE_KEY, DEFAULT_EXCHANGE);
+        routingKey = context.getString(ROUTING_KEY, DEFAULT_ROUTING_KEY);
         autoProperties = context.getBoolean(AUTO_PROPERTIES_KEY, true);
         mandatory = context.getBoolean(MANDATORY_PUBLISH_KEY, false);
         publisherConfirms = context.getBoolean(PUBLISHER_CONFIRMS_KEY, false);
@@ -98,24 +116,24 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
             Event event = getChannel().take();
 
             if (event == null) {
-                counterGroup.incrementAndGet("event.empty");
+                counterGroup.incrementAndGet(EVENT_EMPTY);
                 status = Status.BACKOFF;
             } else {
-                counterGroup.incrementAndGet("event.received");
+                counterGroup.incrementAndGet(EVENT_RECEIVED);
                 publishMessage(event);
-                counterGroup.incrementAndGet("event.published");
+                counterGroup.incrementAndGet(EVENT_PUBLISHED);
 
             }
             transaction.commit();
 
         } catch (ChannelException ex) {
-            counterGroup.incrementAndGet("exception.channel");
+            counterGroup.incrementAndGet(EXCEPTION_CHANNEL);
             transaction.rollback();
             status = Status.BACKOFF;
             logger.error("Unable to get event from channel. Exception follows.", ex);
 
         } catch (EventDeliveryException ex) {
-            counterGroup.incrementAndGet("exception.delivery");
+            counterGroup.incrementAndGet(EXCEPTION_DELIVERY);
             transaction.rollback();
             status = Status.BACKOFF;
             logger.error("Delivery exception: {}", ex);
@@ -136,26 +154,32 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
     @Override
     public synchronized void stop() {
         logger.info("Stopping RabbitMQ Sink {}", this.getName());
-        if (connection != null) closeRabbitMQConnection();
+        if (connection != null) {
+            closeRabbitMQConnection();
+        }
         logger.info("RabbitMQ sink {} stopped. Metrics: {}", this.getName(), counterGroup.getCounters());
         super.stop();
     }
 
 
     private void closeRabbitMQConnection() {
-        try {
-            rmqChannel.close();
-        } catch (IOException ex) {
-            logger.error("Could not close the RabbitMQ Channel: {}", ex.toString());
+        if (rmqChannel != null) {
+            try {
+                rmqChannel.close();
+            } catch (IOException ex) {
+                logger.error("Could not close the RabbitMQ Channel: {}", ex.toString());
+            }
         }
-        try {
-            connection.close();
-        } catch (IOException ex) {
-            logger.error("Could not close the RabbitMQ Connection: {}", ex.toString());
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (IOException ex) {
+                logger.error("Could not close the RabbitMQ Connection: {}", ex.toString());
+            }
         }
         rmqChannel = null;
         connection = null;
-        counterGroup.incrementAndGet("rabbitmq.closed");
+        counterGroup.incrementAndGet(RABBITMQ_CLOSED);
     }
 
     private Channel createRabbitMQChannel() throws EventDeliveryException {
@@ -169,7 +193,7 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
 
     private Connection createRabbitMQConnection(ConnectionFactory factory) throws EventDeliveryException {
         logger.debug("Connecting to RabbitMQ from {}", this.getName());
-        counterGroup.incrementAndGet("rabbitmq.connected");
+        counterGroup.incrementAndGet(RABBITMQ_CONNECTED);
         factory.setHost(hostname);
         factory.setPort(port);
         factory.setVirtualHost(virtualHost);
@@ -179,11 +203,11 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
             try {
                 factory.useSslProtocol();
             } catch (NoSuchAlgorithmException ex) {
-                counterGroup.incrementAndGet("rabbitmq.exception.ssl");
+                counterGroup.incrementAndGet(RABBITMQ_EXCEPTION_SSL);
                 logger.error("Could not enable SSL: {}", ex.toString());
                 throw new EventDeliveryException("Could not Enable SSL: " + ex.toString());
             } catch (KeyManagementException ex) {
-                counterGroup.incrementAndGet("rabbitmq.exception.ssl");
+                counterGroup.incrementAndGet(RABBITMQ_EXCEPTION_SSL);
                 logger.error("Could not enable SSL: {}", ex.toString());
                 throw new EventDeliveryException("Could not Enable SSL: " + ex.toString());
             }
@@ -191,7 +215,7 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
         try {
             return factory.newConnection();
         } catch (IOException ex) {
-            counterGroup.incrementAndGet("rabbitmq.exception.connection");
+            counterGroup.incrementAndGet(RABBITMQ_EXCEPTION_CONNECTION);
             throw new EventDeliveryException(ex.toString());
         }
     }
@@ -206,20 +230,25 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
                 builder.appId(this.getName());
             }
 
-            if (headers.containsKey(CONTENT_ENCODING_KEY))
+            if (headers.containsKey(CONTENT_ENCODING_KEY)) {
                 builder.contentEncoding(headers.get(CONTENT_ENCODING_KEY));
+            }
 
-            if (headers.containsKey(CONTENT_TYPE_KEY))
+            if (headers.containsKey(CONTENT_TYPE_KEY)) {
                 builder.contentType(headers.get(CONTENT_TYPE_KEY));
+            }
 
-            if (headers.containsKey(CORRELATION_ID_KEY))
+            if (headers.containsKey(CORRELATION_ID_KEY)) {
                 builder.correlationId(headers.get(CORRELATION_ID_KEY));
+            }
 
-            if (headers.containsKey(DELIVERY_MODE_KEY))
+            if (headers.containsKey(DELIVERY_MODE_KEY)) {
                 builder.deliveryMode(Integer.parseInt(headers.get(DELIVERY_MODE_KEY)));
+            }
 
-            if (headers.containsKey(EXPIRES_KEY))
+            if (headers.containsKey(EXPIRES_KEY)) {
                 builder.expiration(headers.get(EXPIRES_KEY));
+            }
 
             if (headers.containsKey(MESSAGE_ID_KEY)) {
                 builder.messageId(headers.get(MESSAGE_ID_KEY));
@@ -227,11 +256,13 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
                 builder.messageId(headers.get(ID_KEY));
             }
 
-            if (headers.containsKey(PRIORITY_KEY))
+            if (headers.containsKey(PRIORITY_KEY)) {
                 builder.priority(Integer.parseInt(headers.get(PRIORITY_KEY)));
+            }
 
-            if (headers.containsKey(REPLY_TO_KEY))
+            if (headers.containsKey(REPLY_TO_KEY)) {
                 builder.replyTo(headers.get(REPLY_TO_KEY));
+            }
 
             if (headers.containsKey(TIMESTAMP_KEY)) {
                 builder.timestamp(new Date(Long.parseLong(headers.get(TIMESTAMP_KEY))));
@@ -239,15 +270,16 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
                 builder.timestamp(new Date());
             }
 
-            if (headers.containsKey(TYPE_KEY))
+            if (headers.containsKey(TYPE_KEY)) {
                 builder.replyTo(headers.get(TYPE_KEY));
+            }
 
-            if (headers.containsKey(USER_ID_KEY))
+            if (headers.containsKey(USER_ID_KEY)) {
                 builder.userId(headers.get(USER_ID_KEY));
+            }
         }
         return builder.build();
     }
-
 
     private void enablePublisherConfirms() throws EventDeliveryException {
         try {
@@ -259,7 +291,6 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
         }
     }
 
-
     private Transaction getTransaction() {
         return getChannel().getTransaction();
     }
@@ -268,7 +299,9 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
         if (connection == null) {
             connection = createRabbitMQConnection(factory);
             rmqChannel = createRabbitMQChannel();
-            if (publisherConfirms) enablePublisherConfirms();
+            if (publisherConfirms) {
+                enablePublisherConfirms();
+            }
         }
     }
 

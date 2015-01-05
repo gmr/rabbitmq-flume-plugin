@@ -1,14 +1,5 @@
 package com.aweber.flume.source.rabbitmq;
 
-import com.rabbitmq.client.*;
-import org.apache.flume.CounterGroup;
-import org.apache.flume.Event;
-import org.apache.flume.channel.ChannelProcessor;
-import org.apache.flume.event.EventBuilder;
-import org.apache.flume.instrumentation.SourceCounter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -16,13 +7,29 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.QueueingConsumer;
+
+import org.apache.flume.CounterGroup;
+import org.apache.flume.Event;
+import org.apache.flume.channel.ChannelProcessor;
+import org.apache.flume.event.EventBuilder;
+import org.apache.flume.instrumentation.SourceCounter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Consumer implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(Consumer.class);
+
     private static final String COUNTER_ACK = "rabbitmq.ack";
     private static final String COUNTER_EXCEPTION = "rabbitmq.exception";
     private static final String COUNTER_REJECT = "rabbitmq.reject";
+
     volatile boolean shutdown = false;
     private Connection connection;
     private Channel channel;
@@ -226,12 +233,14 @@ public class Consumer implements Runnable {
         Map<String, String> headers = buildHeaders(delivery.getProperties());
 
         String exchange = delivery.getEnvelope().getExchange();
-        if (exchange != null && !exchange.isEmpty())
+        if (exchange != null && !exchange.isEmpty()) {
             headers.put("exchange", exchange);
+        }
 
         String routingKey = delivery.getEnvelope().getRoutingKey();
-        if (routingKey != null && !routingKey.isEmpty())
+        if (routingKey != null && !routingKey.isEmpty()) {
             headers.put("routing-key", routingKey);
+        }
 
         event.setHeaders(headers);
         return event;
@@ -253,26 +262,42 @@ public class Consumer implements Runnable {
         String type = props.getType();
         String userId = props.getUserId();
 
-        if (appId != null && !appId.isEmpty()) headers.put("app-id", appId);
-        if (contentEncoding != null && !contentEncoding.isEmpty())
+        if (appId != null && !appId.isEmpty()) {
+            headers.put("app-id", appId);
+        }
+        if (contentEncoding != null && !contentEncoding.isEmpty()) {
             headers.put("content-encoding", contentEncoding);
-        if (contentType != null && !contentType.isEmpty())
+        }
+        if (contentType != null && !contentType.isEmpty()) {
             headers.put("content-type", contentType);
-        if (correlationId != null && !correlationId.isEmpty())
+        }
+        if (correlationId != null && !correlationId.isEmpty()) {
             headers.put("correlation-id", correlationId);
-        if (deliveryMode != null)
+        }
+        if (deliveryMode != null) {
             headers.put("delivery-mode", String.valueOf(deliveryMode));
-        if (expiration != null && !expiration.isEmpty())
+        }
+        if (expiration != null && !expiration.isEmpty()) {
             headers.put("expiration", expiration);
-        if (messageId != null && !messageId.isEmpty())
+        }
+        if (messageId != null && !messageId.isEmpty()) {
             headers.put("message-id", messageId);
-        if (priority != null) headers.put("priority", String.valueOf(priority));
-        if (replyTo != null && !replyTo.isEmpty())
+        }
+        if (priority != null) {
+            headers.put("priority", String.valueOf(priority));
+        }
+        if (replyTo != null && !replyTo.isEmpty()) {
             headers.put("replyTo", replyTo);
-        if (timestamp != null)
+        }
+        if (timestamp != null) {
             headers.put("timestamp", String.valueOf(timestamp.getTime()));
-        if (type != null && !type.isEmpty()) headers.put("type", type);
-        if (userId != null && !userId.isEmpty()) headers.put("user-id", userId);
+        }
+        if (type != null && !type.isEmpty()) {
+            headers.put("type", type);
+        }
+        if (userId != null && !userId.isEmpty()) {
+            headers.put("user-id", userId);
+        }
 
         return headers;
     }
