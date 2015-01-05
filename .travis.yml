@@ -7,11 +7,13 @@ jdk:
 - oraclejdk8
 - oraclejdk7
 - openjdk6
+after_success:
+   mvn package
 deploy:
   provider: releases
   api_key:
     secure: CkiqeHfVkf6HeYW6wpBDg8j4GcW3+6I3EKqPXX8CI3oZdM32RU2jU8Jo977g2tLpMvPQRMO+pFXUMTBU1ScTG7eQz0fYoseoCfrTNU2ANHh6vdrIVEvxKXAj2tf4VxLiEVj97PJVHvQfD+XaT6BvIwIWlxNb3bycsXM4KGGlYZg=
-  file: target/rabbitmq-flume-plugin-standalone-$TRAVIS_TAG.jar
+  file: $TRAVIS_BUILD_DIR/target/rabbitmq-flume-plugin-standalone-$TRAVIS_TAG.jar
   on:
     repo: aweber/rabbitmq-flume-plugin
     jdk: oraclejdk7

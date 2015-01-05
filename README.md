@@ -11,8 +11,7 @@ This plugin was developed and tested against Flume 1.5.0.
 
 Download
 --------
-No downloads available, this has yet to be released. The intention is to provide
-a **jar** file for download in the releases page on GitHub.
+You can find the latest and greatest version on the [Releases](https://github.com/aweber/rabbitmq-flume-plugin/releases) page.
 
 Installation Instructions
 -------------------------
