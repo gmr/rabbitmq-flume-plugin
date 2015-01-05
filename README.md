@@ -76,9 +76,6 @@ a1.sources.r1.queue = events_for_s3
 a1.sources.r1.prefetch_count = 10
 ```
 
-### Interceptors
-TBD
-
 ### Sink
 The RabbitMQ Sink allows for Flume events to be published to RabbitMQ. The sink
 
