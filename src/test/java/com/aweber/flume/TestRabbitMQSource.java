@@ -9,8 +9,6 @@ import org.easymock.EasyMockRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -20,9 +18,6 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(EasyMockRunner.class)
 public class TestRabbitMQSource {
-
-    private static final Logger logger = LoggerFactory
-            .getLogger(TestRabbitMQSource.class);
 
     private String queueName = "test-queue";
     private RabbitMQSource source;

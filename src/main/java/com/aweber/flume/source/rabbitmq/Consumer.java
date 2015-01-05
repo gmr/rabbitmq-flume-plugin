@@ -19,10 +19,10 @@ import java.util.Map;
 
 public class Consumer implements Runnable {
 
-    public final static String COUNTER_ACK = "rabbitmq.ack";
-    public final static String COUNTER_EXCEPTION = "rabbitmq.exception";
-    public final static String COUNTER_REJECT = "rabbitmq.reject";
     private static final Logger logger = LoggerFactory.getLogger(Consumer.class);
+    private static final String COUNTER_ACK = "rabbitmq.ack";
+    private static final String COUNTER_EXCEPTION = "rabbitmq.exception";
+    private static final String COUNTER_REJECT = "rabbitmq.reject";
     volatile boolean shutdown = false;
     private Connection connection;
     private Channel channel;

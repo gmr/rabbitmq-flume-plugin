@@ -4,12 +4,8 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import org.apache.flume.Context;
-import org.apache.flume.CounterGroup;
-import org.apache.flume.Event;
-import org.apache.flume.EventDeliveryException;
+import org.apache.flume.*;
 import org.apache.flume.conf.Configurable;
-import org.apache.flume.instrumentation.SinkCounter;
 import org.apache.flume.sink.AbstractSink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,14 +25,11 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
     private static final String VHOST_KEY = "virtual-host";
     private static final String USER_KEY = "username";
     private static final String PASSWORD_KEY = "password";
-
     private static final String EXCHANGE_KEY = "exchange";
     private static final String ROUTING_KEY = "routing-key";
     private static final String AUTO_PROPERTIES_KEY = "auto-properties";
     private static final String MANDATORY_PUBLISH_KEY = "mandatory-publish";
     private static final String PUBLISHER_CONFIRMS_KEY = "publisher-confirms";
-    private static final String TRANSACTIONAL_KEY = "transactional";
-
     private static final String APP_ID_KEY = "app-id";
     private static final String CONTENT_ENCODING_KEY = "content-encoding";
     private static final String CONTENT_TYPE_KEY = "content-type";
@@ -56,19 +49,16 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
     private Boolean autoProperties;
     private Boolean mandatory;
     private Boolean publisherConfirms;
-    private Boolean transactions;
-
-    private ConnectionFactory factory;
     private CounterGroup counterGroup;
-    private SinkCounter sinkCounter;
     private String hostname;
     private int port;
     private boolean sslEnabled = false;
     private String virtualHost;
     private String username;
     private String password;
-    private Connection connection = null;
-    private Channel rmqChannel = null;
+    private com.rabbitmq.client.Channel rmqChannel = null;
+    private com.rabbitmq.client.Connection connection = null;
+    private com.rabbitmq.client.ConnectionFactory factory;
 
     public RabbitMQSink() {
         counterGroup = new CounterGroup();
@@ -76,7 +66,6 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
     }
 
     public RabbitMQSink(ConnectionFactory factory) {
-        sinkCounter = new SinkCounter(this.getName());
         counterGroup = new CounterGroup();
         this.factory = factory;
     }
@@ -94,32 +83,117 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
         autoProperties = context.getBoolean(AUTO_PROPERTIES_KEY, true);
         mandatory = context.getBoolean(MANDATORY_PUBLISH_KEY, false);
         publisherConfirms = context.getBoolean(PUBLISHER_CONFIRMS_KEY, false);
-        transactions = context.getBoolean(TRANSACTIONAL_KEY, false);
     }
 
     @Override
     public Status process() throws EventDeliveryException {
 
-        // Connect to RabbitMQ if not already connected
-        if (connection == null) {
-            connection = createRabbitMQConnection(factory);
-            rmqChannel = createRabbitMQChannel();
-            if (publisherConfirms) enablePublisherConfirms();
+        maybeConnectToRabbitMQ();
+
+        Status status = Status.READY;
+        Transaction transaction = getTransaction();
+
+        try {
+            transaction.begin();
+            Event event = getChannel().take();
+
+            if (event == null) {
+                counterGroup.incrementAndGet("event.empty");
+                status = Status.BACKOFF;
+            } else {
+                counterGroup.incrementAndGet("event.received");
+                publishMessage(event);
+                counterGroup.incrementAndGet("event.published");
+
+            }
+            transaction.commit();
+
+        } catch (ChannelException ex) {
+            counterGroup.incrementAndGet("exception.channel");
+            transaction.rollback();
+            status = Status.BACKOFF;
+            logger.error("Unable to get event from channel. Exception follows.", ex);
+
+        } catch (EventDeliveryException ex) {
+            counterGroup.incrementAndGet("exception.delivery");
+            transaction.rollback();
+            status = Status.BACKOFF;
+            logger.error("Delivery exception: {}", ex);
+
+        } finally {
+            transaction.close();
         }
 
-        sinkCounter.incrementEventDrainAttemptCount();
+        return status;
+    }
 
-        publishMessage(getChannel().take());
-
-        sinkCounter.incrementEventDrainSuccessCount();
-
-        return Status.READY;
+    @Override
+    public synchronized void start() {
+        logger.info("Starting RabbitMQ Sink {}", this.getName());
+        super.start();
     }
 
     @Override
     public synchronized void stop() {
-        if (connection!=null) closeRabbitMQConnection();
+        logger.info("Stopping RabbitMQ Sink {}", this.getName());
+        if (connection != null) closeRabbitMQConnection();
+        logger.info("RabbitMQ sink {} stopped. Metrics: {}", this.getName(), counterGroup.getCounters());
         super.stop();
+    }
+
+
+    private void closeRabbitMQConnection() {
+        try {
+            rmqChannel.close();
+        } catch (IOException ex) {
+            logger.error("Could not close the RabbitMQ Channel: {}", ex.toString());
+        }
+        try {
+            connection.close();
+        } catch (IOException ex) {
+            logger.error("Could not close the RabbitMQ Connection: {}", ex.toString());
+        }
+        rmqChannel = null;
+        connection = null;
+        counterGroup.incrementAndGet("rabbitmq.closed");
+    }
+
+    private Channel createRabbitMQChannel() throws EventDeliveryException {
+        try {
+            return connection.createChannel();
+        } catch (IOException ex) {
+            closeRabbitMQConnection();
+            throw new EventDeliveryException(ex.toString());
+        }
+    }
+
+    private Connection createRabbitMQConnection(ConnectionFactory factory) throws EventDeliveryException {
+        logger.debug("Connecting to RabbitMQ from {}", this.getName());
+        counterGroup.incrementAndGet("rabbitmq.connected");
+        factory.setHost(hostname);
+        factory.setPort(port);
+        factory.setVirtualHost(virtualHost);
+        factory.setUsername(username);
+        factory.setPassword(password);
+        if (sslEnabled) {
+            try {
+                factory.useSslProtocol();
+            } catch (NoSuchAlgorithmException ex) {
+                counterGroup.incrementAndGet("rabbitmq.exception.ssl");
+                logger.error("Could not enable SSL: {}", ex.toString());
+                throw new EventDeliveryException("Could not Enable SSL: " + ex.toString());
+            } catch (KeyManagementException ex) {
+                counterGroup.incrementAndGet("rabbitmq.exception.ssl");
+                logger.error("Could not enable SSL: {}", ex.toString());
+                throw new EventDeliveryException("Could not Enable SSL: " + ex.toString());
+            }
+        }
+        try {
+            return factory.newConnection();
+        } catch (IOException ex) {
+            counterGroup.incrementAndGet("rabbitmq.exception.connection");
+            throw new EventDeliveryException(ex.toString());
+        }
     }
 
     private AMQP.BasicProperties createProperties(Map<String, String> headers) {
@@ -174,6 +248,30 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
         return builder.build();
     }
 
+
+    private void enablePublisherConfirms() throws EventDeliveryException {
+        try {
+            rmqChannel.confirmSelect();
+        } catch (IOException ex) {
+            logger.error("Error enabling Publisher confirmations: {}", ex.toString());
+            closeRabbitMQConnection();
+            throw new EventDeliveryException(ex.toString());
+        }
+    }
+
+
+    private Transaction getTransaction() {
+        return getChannel().getTransaction();
+    }
+
+    private void maybeConnectToRabbitMQ() throws EventDeliveryException {
+        if (connection == null) {
+            connection = createRabbitMQConnection(factory);
+            rmqChannel = createRabbitMQChannel();
+            if (publisherConfirms) enablePublisherConfirms();
+        }
+    }
+
     private void publishMessage(Event event) throws EventDeliveryException {
         String rk;
 
@@ -186,8 +284,6 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
             rk = routingKey;
         }
 
-        if (transactions) txSelect();
-
         try {
             rmqChannel.basicPublish(exchange, rk, mandatory, createProperties(headers), event.getBody());
         } catch (IOException ex) {
@@ -197,8 +293,6 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
         }
 
         if (publisherConfirms) waitForConfirmation();
-
-        if (transactions) txCommit();
     }
 
     private void waitForConfirmation() throws EventDeliveryException {
@@ -207,90 +301,6 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
         } catch (InterruptedException ex) {
             logger.error("Error waiting for publisher confirmation: {}", ex.toString());
             closeRabbitMQConnection();
-            throw new EventDeliveryException(ex.toString());
-        }
-    }
-
-    private void enablePublisherConfirms() throws EventDeliveryException {
-        try {
-            rmqChannel.confirmSelect();
-        } catch (IOException ex) {
-            logger.error("Error enabling Publisher confirmations: {}", ex.toString());
-            closeRabbitMQConnection();
-            throw new EventDeliveryException(ex.toString());
-        }
-    }
-
-    private void txSelect() throws EventDeliveryException {
-        try {
-            rmqChannel.txSelect();
-        } catch (IOException ex) {
-            logger.error("Error creating a new RabbitMQ transaction: {}", ex.toString());
-            closeRabbitMQConnection();
-            throw new EventDeliveryException(ex.toString());
-        }
-    }
-
-    private void txCommit() throws EventDeliveryException {
-        try {
-            rmqChannel.txCommit();
-        } catch (IOException ex) {
-            logger.error("Error committing a new RabbitMQ transaction: {}", ex.toString());
-            closeRabbitMQConnection();
-            throw new EventDeliveryException(ex.toString());
-        }
-    }
-
-    private void closeRabbitMQConnection() {
-        try {
-            rmqChannel.close();
-        } catch (IOException ex) {
-            logger.error("Could not close the RabbitMQ Channel: {}", ex.toString());
-        }
-        try {
-            connection.close();
-        } catch (IOException ex) {
-            logger.error("Could not close the RabbitMQ Connection: {}", ex.toString());
-        }
-        rmqChannel = null;
-        connection = null;
-        sinkCounter.incrementConnectionClosedCount();
-    }
-
-    private Channel createRabbitMQChannel() throws EventDeliveryException {
-        try {
-            return connection.createChannel();
-        } catch (IOException ex) {
-            closeRabbitMQConnection();
-            throw new EventDeliveryException(ex.toString());
-        }
-    }
-
-    private Connection createRabbitMQConnection(ConnectionFactory factory) throws EventDeliveryException {
-        logger.debug("Connecting to RabbitMQ from {}", this);
-        sinkCounter.incrementConnectionCreatedCount();
-        factory.setHost(hostname);
-        factory.setPort(port);
-        factory.setVirtualHost(virtualHost);
-        factory.setUsername(username);
-        factory.setPassword(password);
-        if (sslEnabled) {
-            try {
-                factory.useSslProtocol();
-            } catch (NoSuchAlgorithmException ex) {
-                sinkCounter.incrementConnectionFailedCount();
-                logger.error("Could not enable SSL: {}", ex.toString());
-                throw new EventDeliveryException("Could not Enable SSL: " + ex.toString());
-            } catch (KeyManagementException ex) {
-                sinkCounter.incrementConnectionFailedCount();
-                logger.error("Could not enable SSL: {}", ex.toString());
-                throw new EventDeliveryException("Could not Enable SSL: " + ex.toString());
-            }
-        }
-        try {
-            return factory.newConnection();
-        } catch (IOException ex) {
-            sinkCounter.incrementConnectionFailedCount();
             throw new EventDeliveryException(ex.toString());
         }
     }

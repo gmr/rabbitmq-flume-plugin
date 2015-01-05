@@ -1,7 +1,3 @@
-/**
- * RabbitMQ Source Plugin for Flume
- */
-
 package com.aweber.flume.source.rabbitmq;
 
 import com.rabbitmq.client.Connection;
@@ -11,7 +7,6 @@ import org.apache.flume.CounterGroup;
 import org.apache.flume.EventDrivenSource;
 import org.apache.flume.conf.Configurable;
 import org.apache.flume.conf.Configurables;
-import org.apache.flume.instrumentation.MonitoredCounterGroup;
 import org.apache.flume.instrumentation.SourceCounter;
 import org.apache.flume.source.AbstractSource;
 import org.slf4j.Logger;
@@ -96,7 +91,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
 
     @Override
     public synchronized void start() {
-        logger.info("Starting {} with {} thread(s)", this, consumerThreads);
+        logger.info("Starting {} with {} thread(s)", this.getName(), consumerThreads);
         sourceCounter.start();
         for (int i = 0; i < consumerThreads; i++) {
             Consumer consumer = new Consumer()
@@ -124,7 +119,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
 
     @Override
     public synchronized void stop() {
-        logger.info("Stopping {}...", this);
+        logger.info("Stopping {}", this.getName());
         for (int i = 0; i < consumerThreads; i++) {
         logger.debug("Stopping consumer #{}", i);
             Consumer consumer = consumers.get(i);
