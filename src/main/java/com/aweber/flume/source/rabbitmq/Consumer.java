@@ -302,6 +302,7 @@ public class Consumer implements Runnable {
 
     private Connection createRabbitMQConnection(ConnectionFactory factory) throws IOException {
         logger.debug("Connecting to RabbitMQ from {}", this);
+        factory.setAutomaticRecoveryEnabled(true);
         factory.setHost(hostname);
         factory.setPort(port);
         factory.setVirtualHost(virtualHost);
