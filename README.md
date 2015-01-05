@@ -1,6 +1,6 @@
 rabbitmq-flume-plugin
 =====================
-A Flume plugin that provides a RabbitMQ *Source*, *Sink*, and *Interceptors*. While
+A Flume plugin that provides a RabbitMQ *Source* and *Sink*. While
 there are other Flume(ng) plugins that do this as well, this implementation aims
 to be highly performant and provide tools for mapping message properties to Flume
 event headers.
