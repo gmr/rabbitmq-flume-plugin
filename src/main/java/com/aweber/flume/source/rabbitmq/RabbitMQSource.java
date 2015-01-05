@@ -52,11 +52,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     private List<Thread> threads;
 
     public RabbitMQSource() {
-        sourceCounter = new SourceCounter(getName());
-        counterGroup = new CounterGroup();
-        consumers = new LinkedList<Consumer>();
-        threads = new LinkedList<Thread>();
-        factory = new ConnectionFactory();
+        this(new ConnectionFactory());
     }
 
     public RabbitMQSource(ConnectionFactory factory) {
