@@ -95,7 +95,6 @@ routing-key        |               | The routing key to use when publishing
 auto-properties    | ``true``      | Automatically populate AMQP message properties
 mandatory-publish  | ``false``     | Enable mandatory publishing
 publisher-confirms | ``false``     | Enable publisher confirmations
-transactional      | ``false``     | Enable transactional publishing (slowest publishing guarantee)
 
 #### Headers
 When publishing an event message, the RabbitMQ Sink will first look to the event
