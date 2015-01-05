@@ -10,7 +10,7 @@ jdk:
 deploy:
   provider: releases
   api-key: "GITHUB OAUTH TOKEN"
-  file: target/trrabbitmq-flume-plugin-$TRAVIS_TAG.jar
+  file: target/rabbitmq-flume-plugin-standalone-$TRAVIS_TAG.jar
   skip_cleanup: true
   on:
     jdk: oraclejdk7
