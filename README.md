@@ -33,8 +33,8 @@ for the message. (*) This excludes the headers property which is a free-form key
 This is currently excluded due to the complexity of correctly parsing and dealing with the
 different data types that could be returned as values in the headers table.
 
-With Flume ``Event`` headers, you could use the ``type`` property or ``routing-key`` as
-part of the file path or name when using the HDFS sink.
+Using the Flume ``Event`` headers, you could use the ``type`` property, ``exchange``,
+or ``routing-key`` as part of the file path or name when using the HDFS sink.
 
 By default, there is a single consumer thread in the RabbitMQ source.
 
@@ -60,6 +60,23 @@ auto-ack          | ``false``     | Enable auto-acknowledgement for higher throu
 prefetch-count    | ``0``         | The ``Basic.QoS`` prefetch count to specify for consuming
 prefetch-size     | ``0``         | The ``Basic.QoS`` prefetch size to specify for consuming
 threads           | ``1``         | The number of consumer threads to create
+
+#### Possible event header keys
+
+- exchange
+- routing-key
+- app-id
+- content-encoding
+- content-type
+- correlation-id
+- delivery-mode
+- expires
+- message-id
+- priority
+- reply-to
+- timestamp
+- type
+- user-id
 
 #### Example
 
