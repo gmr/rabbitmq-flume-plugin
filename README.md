@@ -17,7 +17,7 @@ a **jar** file for download in the releases page on GitHub.
 Installation Instructions
 -------------------------
 To install the plugin, copy the *jar* file to the ``$FLUME_LIB`` directory. For
-example, the ``$FLUME_LIB`` directory for Cloudera (CDH4) installed Flume, the
+example, the ``$FLUME_LIB`` directory for Cloudera (CDH5) installed Flume, the
 ``$FLUME_LIB`` is ``/usr/lib/flume/lib``.
 
 Behavior
@@ -80,7 +80,7 @@ a1.sources.r1.prefetch_count = 10
 TBD
 
 ### Sink
-The RabbitMQ Sink allows for Flume events to be published to RabbitMQ. You must
+The RabbitMQ Sink allows for Flume events to be published to RabbitMQ. The sink
 
 Variable           | Default       | Description
 ------------------ | ------------- | -----------
@@ -92,11 +92,38 @@ username           | ``guest``     | The username to connect as
 password           | ``guest``     | The password to use when connecting
 exchange           | ``amq.topic`` | The exchange to publish the message to
 routing-key        |               | The routing key to use when publishing
-auto-properties    | ``false``     | Automatically populate AMQP message properties (timestamp, message_id, type?)
+auto-properties    | ``true``      | Automatically populate AMQP message properties
 mandatory-publish  | ``false``     | Enable mandatory publishing
 publisher-confirms | ``false``     | Enable publisher confirmations
 transactional      | ``false``     | Enable transactional publishing (slowest publishing guarantee)
-threads            | ``1``         | The number of consumer threads created.
+
+#### Headers
+When publishing an event message, the RabbitMQ Sink will first look to the event
+headers for a ``routing-key`` entry. If it is set, it will use that value when
+publishing the message. If it is not set, it will fall back to the configured
+routing-key value which defaults to an empty string.
+
+If the ``auto-properties`` configuration option is enabled (default), the event
+headers will be examined for standard AMQP Basic.Properties entries (sans the
+``headers`` AMQP table). If the property is set in the event headers, it will be set
+in the message properties. Additionally, if the ``app-id`` value is not set in the
+headers, it will default to ``RabbitMQSink``. If ``timestamp`` is not set in the
+headers, it will default to the current system time.
+
+##### Available property keys
+
+- app-id
+- content-encoding
+- content-type
+- correlation-id
+- delivery-mode
+- expires
+- message-id
+- priority
+- reply-to
+- timestamp
+- type
+- user-id
 
 #### Example
 
@@ -109,8 +136,8 @@ a1.sinks.k1.virtual_host = /
 a1.sinks.k1.username = flume
 a1.sinks.k1.password = rabbitmq
 a1.sinks.k1.exchange = amq.topic
-a1.sinks.k1.routing_key = flume.event
-a1.sinks.k1.publisher_confirms = true
+a1.sinks.k1.routing-key = flume.event
+a1.sinks.k1.publisher-confirms = true
 ```
 
 Build Instructions
