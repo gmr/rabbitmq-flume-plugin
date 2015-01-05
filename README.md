@@ -7,7 +7,7 @@ event headers.
 
 This plugin was developed and tested against Flume 1.5.0.
 
-[![Build Status](https://travis-ci.org/gmr/rabbitmq-flume-plugin.svg?branch=master)](https://travis-ci.org/gmr/rabbitmq-flume-plugin)
+[![Build Status](https://travis-ci.org/aweber/rabbitmq-flume-plugin.svg?branch=master)](https://travis-ci.org/aweber/rabbitmq-flume-plugin)
 
 Download
 --------
