@@ -2,17 +2,18 @@ sudo: false
 language: java
 cache:
   directories:
-    - '$HOME/.m2/repository'
+  - "$HOME/.m2/repository"
 jdk:
-  - oraclejdk8
-  - oraclejdk7
-  - openjdk6
+- oraclejdk8
+- oraclejdk7
+- openjdk6
 deploy:
   provider: releases
-  api-key: "GITHUB OAUTH TOKEN"
+  api_key:
+    secure: CkiqeHfVkf6HeYW6wpBDg8j4GcW3+6I3EKqPXX8CI3oZdM32RU2jU8Jo977g2tLpMvPQRMO+pFXUMTBU1ScTG7eQz0fYoseoCfrTNU2ANHh6vdrIVEvxKXAj2tf4VxLiEVj97PJVHvQfD+XaT6BvIwIWlxNb3bycsXM4KGGlYZg=
   file: target/rabbitmq-flume-plugin-standalone-$TRAVIS_TAG.jar
-  skip_cleanup: true
   on:
+    repo: aweber/rabbitmq-flume-plugin
     jdk: oraclejdk7
     tags: true
     all_branches: true
