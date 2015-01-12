@@ -152,6 +152,11 @@ a1.sinks.k1.routing-key = flume.event
 a1.sinks.k1.publisher-confirms = true
 ```
 
+Version History
+---------------
+- v1.0.2 - *Released 2015-01-12*
+  - Fix an issue where the counter names were null for both Source and Sink
+
 Build Instructions
 ------------------
 To build from source, use ``maven``:
