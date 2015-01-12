@@ -79,12 +79,10 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
     private com.rabbitmq.client.ConnectionFactory factory;
 
     public RabbitMQSink() {
-        counterGroup = new CounterGroup();
-        factory = new ConnectionFactory();
+        this(new ConnectionFactory());
     }
 
     public RabbitMQSink(ConnectionFactory factory) {
-        counterGroup = new CounterGroup();
         this.factory = factory;
     }
 
@@ -101,6 +99,8 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
         autoProperties = context.getBoolean(AUTO_PROPERTIES_KEY, true);
         mandatory = context.getBoolean(MANDATORY_PUBLISH_KEY, false);
         publisherConfirms = context.getBoolean(PUBLISHER_CONFIRMS_KEY, false);
+        counterGroup = new CounterGroup();
+        counterGroup.setName(getName());
     }
 
     @Override

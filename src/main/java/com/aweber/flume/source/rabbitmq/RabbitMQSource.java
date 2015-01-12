@@ -56,8 +56,6 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     }
 
     public RabbitMQSource(ConnectionFactory factory) {
-        sourceCounter = new SourceCounter(getName());
-        counterGroup = new CounterGroup();
         consumers = new LinkedList<Consumer>();
         threads = new LinkedList<Thread>();
         this.factory = factory;
@@ -83,11 +81,16 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
 
         // Ensure that Flume can connect to RabbitMQ
         testRabbitMQConnection();
+
+        // Create and configure the counters
+        sourceCounter = new SourceCounter(getName());
+        counterGroup = new CounterGroup();
+        counterGroup.setName(getName());
     }
 
     @Override
     public synchronized void start() {
-        logger.info("Starting {} with {} thread(s)", this.getName(), consumerThreads);
+        logger.info("Starting {} with {} thread(s)", getName(), consumerThreads);
         sourceCounter.start();
         for (int i = 0; i < consumerThreads; i++) {
             Consumer consumer = new Consumer()
@@ -115,7 +118,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
 
     @Override
     public synchronized void stop() {
-        logger.info("Stopping {}", this.getName());
+        logger.info("Stopping {}", getName());
         for (int i = 0; i < consumerThreads; i++) {
         logger.debug("Stopping consumer #{}", i);
             Consumer consumer = consumers.get(i);
