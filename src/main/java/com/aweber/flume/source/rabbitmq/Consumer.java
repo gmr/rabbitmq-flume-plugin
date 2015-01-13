@@ -298,7 +298,7 @@ public class Consumer implements Runnable {
 
     private boolean setQoS() {
         try {
-            channel.basicQos(0, prefetchCount, true);
+            channel.basicQos(prefetchCount);
         } catch (IOException ex) {
             logger.error("Error setting QoS prefetching: {}", ex);
             return false;
