@@ -76,11 +76,6 @@ public class TestRabbitMQSource {
     }
 
     @Test
-    public void testPrefetchSizeDefaultValue() throws NoSuchFieldException, IllegalAccessException {
-        assertEquals(0, getAccessibleField("prefetchSize").get(source));
-    }
-
-    @Test
     public void testAutoAckDefaultValue() throws NoSuchFieldException, IllegalAccessException {
         assertEquals(false, getAccessibleField("autoAck").get(source));
     }
