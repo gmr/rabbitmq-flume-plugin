@@ -58,7 +58,6 @@ password          | ``guest``     | The password to use when connecting
 queue             |               | **Required** field specifying the name of the queue to consume from
 auto-ack          | ``false``     | Enable auto-acknowledgement for higher throughput with the chance of message loss
 prefetch-count    | ``0``         | The ``Basic.QoS`` prefetch count to specify for consuming
-prefetch-size     | ``0``         | The ``Basic.QoS`` prefetch size to specify for consuming
 threads           | ``1``         | The number of consumer threads to create
 
 #### Possible event header keys

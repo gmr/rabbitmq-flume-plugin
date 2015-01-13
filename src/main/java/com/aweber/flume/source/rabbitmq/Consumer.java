@@ -46,7 +46,6 @@ public class Consumer implements Runnable {
     private String queue;
     private boolean autoAck = false;
     private int prefetchCount = 0;
-    private int prefetchSize = 0;
 
     public Consumer() {
     }
@@ -111,11 +110,6 @@ public class Consumer implements Runnable {
         return this;
     }
 
-    public Consumer setPrefetchSize(int prefetchSize) {
-        this.prefetchSize = prefetchSize;
-        return this;
-    }
-
     @Override
     public void run() {
         QueueingConsumer consumer;
@@ -143,7 +137,7 @@ public class Consumer implements Runnable {
         }
 
         // Set QoS Prefetching if enabled, exiting if it fails
-        if (prefetchCount > 0 || prefetchSize > 0) {
+        if (prefetchCount > 0) {
             if (!setQoS()) {
                 this.close();
                 return;
@@ -304,7 +298,7 @@ public class Consumer implements Runnable {
 
     private boolean setQoS() {
         try {
-            channel.basicQos(prefetchCount, prefetchSize, true);
+            channel.basicQos(0, prefetchCount, true);
         } catch (IOException ex) {
             logger.error("Error setting QoS prefetching: {}", ex);
             return false;
