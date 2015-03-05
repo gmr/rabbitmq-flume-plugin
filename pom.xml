@@ -47,6 +47,11 @@
       <version>${rabbitmq.version}</version>
     </dependency>
     <dependency>
+      <groupId>net.jodah</groupId>
+      <artifactId>lyra</artifactId>
+      <version>0.5.0</version>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
