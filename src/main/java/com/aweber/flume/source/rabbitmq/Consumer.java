@@ -176,7 +176,7 @@ public class Consumer implements Runnable {
                 continue;
             }
             sourceCounter.incrementEventAcceptedCount();
-            ackMessage(getDeliveryTag(delivery));
+            if(!autoAck) ackMessage(getDeliveryTag(delivery));
         }
 
         // Tell RabbitMQ that the consumer is stopping
