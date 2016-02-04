@@ -80,6 +80,11 @@ public class TestRabbitMQSource {
         assertEquals(false, getAccessibleField("autoAck").get(source));
     }
 
+    @Test
+    public void testRequeuingDefaultValue() throws NoSuchFieldException, IllegalAccessException {
+        assertEquals(false, getAccessibleField("requeuing").get(source));
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void testEmptyQueue() {
         Context context = new Context();
