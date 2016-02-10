@@ -46,6 +46,7 @@ public class Consumer implements Runnable {
     private String queue;
     private boolean autoAck = false;
     private int prefetchCount = 0;
+    private int timeout = -1;
 
     public Consumer() {
     }
@@ -110,6 +111,11 @@ public class Consumer implements Runnable {
         return this;
     }
 
+    public Consumer setTimeout(int timeout) {
+        this.timeout = timeout;
+        return this;
+    }
+
     @Override
     public void run() {
         QueueingConsumer consumer;
@@ -161,22 +167,30 @@ public class Consumer implements Runnable {
 
             // Get the next message from the stack
             try {
-                delivery = consumer.nextDelivery();
+                // Handle timeout
+                if (timeout < 0) {
+                    delivery = consumer.nextDelivery();
+                } else {
+                    delivery = consumer.nextDelivery(timeout); // returns null on timeout
+                }
             } catch (InterruptedException ex) {
                 logger.error("Consumer interrupted for {}, exiting: {}", this, ex);
                 break;
             }
-            sourceCounter.incrementEventReceivedCount();
+            // Process the delivery if any
+            if (delivery != null) {
+                sourceCounter.incrementEventReceivedCount();
 
-            try {
-                channelProcessor.processEvent(parseMessage(delivery));
-            } catch (Exception ex) {
-                logger.error("Error writing to channel for {}, message rejected {}", this, ex);
-                rejectMessage(getDeliveryTag(delivery));
-                continue;
+                try {
+                    channelProcessor.processEvent(parseMessage(delivery));
+                } catch (Exception ex) {
+                    logger.error("Error writing to channel for {}, message rejected {}", this, ex);
+                    rejectMessage(getDeliveryTag(delivery));
+                    continue;
+                }
+                sourceCounter.incrementEventAcceptedCount();
+                if (!autoAck) ackMessage(getDeliveryTag(delivery));
             }
-            sourceCounter.incrementEventAcceptedCount();
-            if(!autoAck) ackMessage(getDeliveryTag(delivery));
         }
 
         // Tell RabbitMQ that the consumer is stopping

@@ -58,6 +58,7 @@ password          | ``guest``     | The password to use when connecting
 queue             |               | **Required** field specifying the name of the queue to consume from
 auto-ack          | ``false``     | Enable auto-acknowledgement for higher throughput with the chance of message loss
 prefetch-count    | ``0``         | The ``Basic.QoS`` prefetch count to specify for consuming
+timeout           | ``-1``        | The timeout the consumer will wait for rabbitmq to deliver a message before retrying
 threads           | ``1``         | The number of consumer threads to create
 
 #### Possible event header keys
@@ -153,6 +154,8 @@ a1.sinks.k1.publisher-confirms = true
 
 Version History
 ---------------
+- v1.0.x - *Not yet released*
+  - Timeout for consumer to allow clean shutdown and configuration reload
 - v1.0.2 - *Released 2015-01-12*
   - Fix an issue where the counter names were null for both Source and Sink
 
