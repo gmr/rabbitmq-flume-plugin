@@ -31,6 +31,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     private static final String QUEUE_KEY = "queue";
     private static final String AUTOACK_KEY = "auto-ack";
     private static final String PREFETCH_COUNT_KEY = "prefetch-count";
+    private static final String TIMEOUT_KEY = "timeout";
     private static final String THREAD_COUNT_KEY = "threads";
     private SourceCounter sourceCounter;
     private ConnectionFactory factory;
@@ -44,6 +45,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     private String queue;
     private boolean autoAck = false;
     private int prefetchCount = 0;
+    private int timeout = -1;
     private int consumerThreads = 1;
 
     private List<Consumer> consumers;
@@ -74,6 +76,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
         queue = context.getString(QUEUE_KEY, null);
         autoAck = context.getBoolean(AUTOACK_KEY, false);
         prefetchCount = context.getInteger(PREFETCH_COUNT_KEY, 0);
+        timeout = context.getInteger(TIMEOUT_KEY, -1);
         consumerThreads = context.getInteger(THREAD_COUNT_KEY, 1);
 
         // Ensure that Flume can connect to RabbitMQ
@@ -99,6 +102,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
                     .setPassword(password)
                     .setQueue(queue)
                     .setPrefetchCount(prefetchCount)
+                    .setTimeout(timeout)
                     .setAutoAck(autoAck)
                     .setChannelProcessor(getChannelProcessor())
                     .setSourceCounter(sourceCounter)
