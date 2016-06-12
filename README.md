@@ -142,7 +142,7 @@ headers, it will default to the current system time.
 ```
 a1.sinks.k1.channels = c1
 a1.sinks.k1.type = com.aweber.flume.sink.rabbitmq.RabbitMQSink
-a1.sinks.k1.hostname = localhost
+a1.sinks.k1.host = localhost
 a1.sinks.k1.port = 5672
 a1.sinks.k1.virtual-host = /
 a1.sinks.k1.username = flume
