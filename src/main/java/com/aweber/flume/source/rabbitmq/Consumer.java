@@ -197,6 +197,11 @@ public class Consumer implements Runnable {
                 sourceCounter.incrementEventAcceptedCount();
                 if (!autoAck) ackMessage(getDeliveryTag(delivery));
             }
+
+            sourceCounter.incrementEventAcceptedCount();
+            if (!autoAck) {
+                ackMessage(getDeliveryTag(delivery));
+            }
         }
 
         // Tell RabbitMQ that the consumer is stopping
@@ -311,6 +316,20 @@ public class Consumer implements Runnable {
         }
         if (userId != null && !userId.isEmpty()) {
             headers.put("user-id", userId);
+        }
+
+        Map<String, Object> userHeaders = props.getHeaders();
+
+        if (userHeaders != null && userHeaders.size() > 0) {
+            for (String key : userHeaders.keySet()) {
+                Object value = userHeaders.get(key);
+                if (value != null) {
+                    headers.put(key, userHeaders.get(key).toString());
+                } else {
+                    // Keep the header just in case has to be used as a flag.
+                    headers.put(key, "");
+                }
+            }
         }
 
         return headers;
