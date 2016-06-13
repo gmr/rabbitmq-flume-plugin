@@ -16,6 +16,7 @@
     <junit.version>4.11</junit.version>
     <powermock.version>1.6.0</powermock.version>
     <rabbitmq.version>3.4.2</rabbitmq.version>
+    <lyra.version>0.5.2</lyra.version>
   </properties>
 
   <licenses>
@@ -45,6 +46,11 @@
       <groupId>com.rabbitmq</groupId>
       <artifactId>amqp-client</artifactId>
       <version>${rabbitmq.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.jodah</groupId>
+      <artifactId>lyra</artifactId>
+      <version>${lyra.version}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
