@@ -58,7 +58,7 @@ password          | ``guest``     | The password to use when connecting
 queue             |               | **Required** field specifying the name of the queue to consume from
 auto-ack          | ``false``     | Enable auto-acknowledgement for higher throughput with the chance of message loss
 requeuing         | ``false``     | Instruct the broker to discard or requeue failed (rejected) messages
-prefetch-count    | ``0``         | The ``Basic.QoS`` prefetch count to specify for consuming
+prefetchCount     | ``0``         | The ``Basic.QoS`` prefetch count to specify for consuming
 timeout           | ``-1``        | The timeout the consumer will wait for rabbitmq to deliver a message before retrying
 threads           | ``1``         | The number of consumer threads to create
 
@@ -90,11 +90,11 @@ a1.sources.r1.virtual-host = /
 a1.sources.r1.username = flume
 a1.sources.r1.password = rabbitmq
 a1.sources.r1.queue = events_for_s3
-a1.sources.r1.prefetch_count = 10
+a1.sources.r1.prefetchCount = 10
 ```
 
 ### Sink
-The RabbitMQ Sink allows for Flume events to be published to RabbitMQ. The sink
+The RabbitMQ Sink allows for Flume events to be published to RabbitMQ.
 
 Variable           | Default       | Description
 ------------------ | ------------- | -----------
