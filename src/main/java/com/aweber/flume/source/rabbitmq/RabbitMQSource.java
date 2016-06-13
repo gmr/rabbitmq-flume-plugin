@@ -33,6 +33,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     private static final String PREFETCH_COUNT_KEY = "prefetch-count";
     private static final String TIMEOUT_KEY = "timeout";
     private static final String THREAD_COUNT_KEY = "threads";
+    private static final String REQUEUING = "requeuing";
     private SourceCounter sourceCounter;
     private ConnectionFactory factory;
     private CounterGroup counterGroup;
@@ -44,6 +45,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     private String password;
     private String queue;
     private boolean autoAck = false;
+    private boolean requeuing = false;
     private int prefetchCount = 0;
     private int timeout = -1;
     private int consumerThreads = 1;
@@ -75,6 +77,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
         password = context.getString(PASSWORD_KEY, ConnectionFactory.DEFAULT_PASS);
         queue = context.getString(QUEUE_KEY, null);
         autoAck = context.getBoolean(AUTOACK_KEY, false);
+        requeuing = context.getBoolean(REQUEUING, false);
         prefetchCount = context.getInteger(PREFETCH_COUNT_KEY, 0);
         timeout = context.getInteger(TIMEOUT_KEY, -1);
         consumerThreads = context.getInteger(THREAD_COUNT_KEY, 1);
@@ -104,6 +107,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
                     .setPrefetchCount(prefetchCount)
                     .setTimeout(timeout)
                     .setAutoAck(autoAck)
+                    .setRequeing(requeuing)
                     .setChannelProcessor(getChannelProcessor())
                     .setSourceCounter(sourceCounter)
                     .setCounterGroup(counterGroup);
