@@ -84,7 +84,7 @@ threads           | ``1``         | The number of consumer threads to create
 ```
 a1.sources.r1.channels = c1
 a1.sources.r1.type = com.aweber.flume.source.rabbitmq.RabbitMQSource
-a1.sources.r1.hostname = localhost
+a1.sources.r1.host = localhost
 a1.sources.r1.port = 5672
 a1.sources.r1.virtual-host = /
 a1.sources.r1.username = flume
