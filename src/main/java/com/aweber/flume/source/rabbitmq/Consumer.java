@@ -33,6 +33,7 @@ public class Consumer implements Runnable {
     private static final String COUNTER_ACK = "rabbitmq.ack";
     private static final String COUNTER_EXCEPTION = "rabbitmq.exception";
     private static final String COUNTER_REJECT = "rabbitmq.reject";
+    private static final String DEFAULT_ROUTING_KEY = "";
 
     private Connection connection;
     private Channel channel;
@@ -47,6 +48,7 @@ public class Consumer implements Runnable {
     private String username;
     private String password;
     private String queue;
+    private String exchange;
     private boolean autoAck = false;
     private boolean requeuing = false;
     private int prefetchCount = 0;
@@ -126,6 +128,11 @@ public class Consumer implements Runnable {
         return this;
     }
 
+    public Consumer setExchange(String exchange) {
+        this.exchange = exchange;
+        return this;
+    }
+
     @Override
     public void run() {
         DefaultConsumer consumer;
@@ -146,6 +153,11 @@ public class Consumer implements Runnable {
         // Open the channel
         try {
             channel = connection.createChannel();
+            if (null != exchange) {
+                channel.exchangeDeclare(exchange, "direct", true);
+                String queueName = channel.queueDeclare(queue, true, false, false, null).getQueue();
+                channel.queueBind(queueName, exchange, DEFAULT_ROUTING_KEY);
+            }
         } catch (IOException ex) {
             logger.error("Error creating RabbitMQ channel: {}", ex);
             return;

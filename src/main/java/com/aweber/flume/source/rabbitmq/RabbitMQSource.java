@@ -28,6 +28,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     private static final String VHOST_KEY = "virtual-host";
     private static final String USER_KEY = "username";
     private static final String PASSWORD_KEY = "password";
+    private static final String EXCHANGE_KEY = "exchange";
     private static final String QUEUE_KEY = "queue";
     private static final String AUTOACK_KEY = "auto-ack";
     private static final String PREFETCH_COUNT_KEY = "prefetch-count";
@@ -44,6 +45,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
     private String username;
     private String password;
     private String queue;
+    private String exchange;
     private boolean autoAck = false;
     private boolean requeuing = false;
     private int prefetchCount = 0;
@@ -76,6 +78,7 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
         username = context.getString(USER_KEY, ConnectionFactory.DEFAULT_USER);
         password = context.getString(PASSWORD_KEY, ConnectionFactory.DEFAULT_PASS);
         queue = context.getString(QUEUE_KEY, null);
+        exchange = context.getString(EXCHANGE_KEY, null);
         autoAck = context.getBoolean(AUTOACK_KEY, false);
         requeuing = context.getBoolean(REQUEUING, false);
         prefetchCount = context.getInteger(PREFETCH_COUNT_KEY, 0);
@@ -111,6 +114,9 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
                     .setChannelProcessor(getChannelProcessor())
                     .setSourceCounter(sourceCounter)
                     .setCounterGroup(counterGroup);
+            if (null != exchange) {
+                consumer.setExchange(exchange);
+            }
             Thread thread = new Thread(consumer);
             thread.setName("RabbitMQ Consumer #" + String.valueOf(i));
             thread.start();
