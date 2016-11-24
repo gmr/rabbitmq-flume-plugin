@@ -15,7 +15,7 @@
     <flume.version>1.5.2</flume.version>
     <junit.version>4.11</junit.version>
     <powermock.version>1.6.0</powermock.version>
-    <rabbitmq.version>3.4.2</rabbitmq.version>
+    <rabbitmq.version>3.6.5</rabbitmq.version>
   </properties>
 
   <licenses>
