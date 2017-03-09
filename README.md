@@ -57,7 +57,8 @@ username          | ``guest``     | The username to connect as
 password          | ``guest``     | The password to use when connecting
 queue             |               | **Required** field specifying the name of the queue to consume from
 auto-ack          | ``false``     | Enable auto-acknowledgement for higher throughput with the chance of message loss
-prefetch-count    | ``0``         | The ``Basic.QoS`` prefetch count to specify for consuming
+requeuing         | ``false``     | Instruct the broker to discard or requeue failed (rejected) messages
+prefetchCount     | ``0``         | The ``Basic.QoS`` prefetch count to specify for consuming
 timeout           | ``-1``        | The timeout the consumer will wait for rabbitmq to deliver a message before retrying
 threads           | ``1``         | The number of consumer threads to create
 
@@ -83,17 +84,17 @@ threads           | ``1``         | The number of consumer threads to create
 ```
 a1.sources.r1.channels = c1
 a1.sources.r1.type = com.aweber.flume.source.rabbitmq.RabbitMQSource
-a1.sources.r1.hostname = localhost
+a1.sources.r1.host = localhost
 a1.sources.r1.port = 5672
 a1.sources.r1.virtual-host = /
 a1.sources.r1.username = flume
 a1.sources.r1.password = rabbitmq
 a1.sources.r1.queue = events_for_s3
-a1.sources.r1.prefetch_count = 10
+a1.sources.r1.prefetchCount = 10
 ```
 
 ### Sink
-The RabbitMQ Sink allows for Flume events to be published to RabbitMQ. The sink
+The RabbitMQ Sink allows for Flume events to be published to RabbitMQ.
 
 Variable           | Default       | Description
 ------------------ | ------------- | -----------
@@ -142,7 +143,7 @@ headers, it will default to the current system time.
 ```
 a1.sinks.k1.channels = c1
 a1.sinks.k1.type = com.aweber.flume.sink.rabbitmq.RabbitMQSink
-a1.sinks.k1.hostname = localhost
+a1.sinks.k1.host = localhost
 a1.sinks.k1.port = 5672
 a1.sinks.k1.virtual-host = /
 a1.sinks.k1.username = flume
@@ -156,6 +157,7 @@ Version History
 ---------------
 - v1.0.x - *Not yet released*
   - Timeout for consumer to allow clean shutdown and configuration reload
+  - Requeuing / discarding of failed messages by broker now configurable (before: hardcoded to discarding)
 - v1.0.2 - *Released 2015-01-12*
   - Fix an issue where the counter names were null for both Source and Sink
 
