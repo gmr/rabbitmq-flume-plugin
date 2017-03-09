@@ -76,8 +76,18 @@ public class TestRabbitMQSource {
     }
 
     @Test
+    public void testTimeoutDefaultValue() throws NoSuchFieldException, IllegalAccessException {
+        assertEquals(-1, getAccessibleField("timeout").get(source));
+    }
+
+    @Test
     public void testAutoAckDefaultValue() throws NoSuchFieldException, IllegalAccessException {
         assertEquals(false, getAccessibleField("autoAck").get(source));
+    }
+
+    @Test
+    public void testRequeuingDefaultValue() throws NoSuchFieldException, IllegalAccessException {
+        assertEquals(false, getAccessibleField("requeuing").get(source));
     }
 
     @Test(expected = IllegalArgumentException.class)
