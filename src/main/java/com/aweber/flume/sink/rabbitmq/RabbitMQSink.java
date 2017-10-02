@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
@@ -168,6 +169,8 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
                 rmqChannel.close();
             } catch (IOException ex) {
                 logger.error("Could not close the RabbitMQ Channel: {}", ex.toString());
+            } catch (TimeoutException ex) {
+                logger.error("Could not close the RabbitMQ Channel: {}", ex.toString());
             }
         }
         if (connection != null) {
@@ -217,7 +220,10 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
         } catch (IOException ex) {
             counterGroup.incrementAndGet(RABBITMQ_EXCEPTION_CONNECTION);
             throw new EventDeliveryException(ex.toString());
-        }
+        } catch (TimeoutException ex) {
+            counterGroup.incrementAndGet(RABBITMQ_EXCEPTION_CONNECTION);
+            throw new EventDeliveryException(ex.toString());
+         }
     }
 
     private AMQP.BasicProperties createProperties(Map<String, String> headers) {

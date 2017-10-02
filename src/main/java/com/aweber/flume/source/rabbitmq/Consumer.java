@@ -1,6 +1,7 @@
 package com.aweber.flume.source.rabbitmq;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
@@ -328,6 +329,8 @@ public class Consumer implements Runnable {
             channel.close();
             connection.close();
         } catch (IOException ex) {
+            logger.error("Error cleanly closing RabbitMQ connection: {}", ex.toString());
+        } catch (TimeoutException ex) {
             logger.error("Error cleanly closing RabbitMQ connection: {}", ex.toString());
         }
     }
