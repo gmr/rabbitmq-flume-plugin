@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 import java.lang.reflect.Field;
 
 import static org.easymock.EasyMock.*;
@@ -29,7 +30,7 @@ public class TestRabbitMQSource {
     }
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() throws IOException, TimeoutException {
         ConnectionFactory mock = createNiceMock(ConnectionFactory.class);
         expect(mock.newConnection()).andReturn(createNiceMock(Connection.class));
         replay(mock);
