@@ -330,6 +330,9 @@ public class Consumer implements Runnable {
         } catch (IOException ex) {
             logger.error("Error cleanly closing RabbitMQ connection: {}", ex.toString());
         }
+        catch (Exception ex) {
+            throw new IllegalArgumentException("Consumer: Could not connect to RabbitMQ: General exception - " + ex.toString());
+        }
     }
 
     private Connection createRabbitMQConnection(Config config) throws IOException {

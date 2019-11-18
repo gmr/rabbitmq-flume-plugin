@@ -29,7 +29,7 @@ public class TestRabbitMQSource {
     }
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() throws Exception {
         ConnectionFactory mock = createNiceMock(ConnectionFactory.class);
         expect(mock.newConnection()).andReturn(createNiceMock(Connection.class));
         replay(mock);

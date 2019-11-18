@@ -169,6 +169,9 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
             } catch (IOException ex) {
                 logger.error("Could not close the RabbitMQ Channel: {}", ex.toString());
             }
+            catch (Exception ex) {
+                throw new IllegalArgumentException("WTF Could not connect to RabbitMQ: General exception - " + ex.toString());
+            }
         }
         if (connection != null) {
             try {
@@ -217,6 +220,9 @@ public class RabbitMQSink extends AbstractSink implements Configurable {
         } catch (IOException ex) {
             counterGroup.incrementAndGet(RABBITMQ_EXCEPTION_CONNECTION);
             throw new EventDeliveryException(ex.toString());
+        }
+        catch (Exception ex) {
+            throw new IllegalArgumentException("Sink: Could not connect to RabbitMQ: General exception - " + ex.toString());
         }
     }
 

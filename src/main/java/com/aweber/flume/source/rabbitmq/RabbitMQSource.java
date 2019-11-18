@@ -155,6 +155,9 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
         } catch (IOException ex) {
             throw new IllegalArgumentException("Could not connect to RabbitMQ: " + ex.toString());
         }
+        catch (Exception ex) {
+            throw new IllegalArgumentException("Could not connect to RabbitMQ: General exception - " + ex.toString());
+        }
     }
 
 }
