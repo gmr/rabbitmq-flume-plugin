@@ -158,7 +158,10 @@ public class RabbitMQSource extends AbstractSource implements Configurable, Even
         try {
             connection = factory.newConnection();
             connection.close();
-        } catch (IOException ex) {
+        } catch (java.util.concurrent.TimeoutException ex) {
+            throw new IllegalArgumentException("RabbitMQ connection timed out: " + ex.toString());
+        }
+        catch (IOException ex) {
             throw new IllegalArgumentException("Could not connect to RabbitMQ: " + ex.toString());
         }
     }

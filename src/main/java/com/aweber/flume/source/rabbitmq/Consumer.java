@@ -342,6 +342,9 @@ public class Consumer implements Runnable {
         } catch (IOException ex) {
             logger.error("Error cleanly closing RabbitMQ connection: {}", ex.toString());
         }
+        catch (java.util.concurrent.TimeoutException ex) {
+            logger.error("Error cleanly closing RabbitMQ connection: {}", ex.toString());
+        }
     }
 
     private Connection createRabbitMQConnection(Config config) throws IOException {
